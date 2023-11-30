@@ -25,7 +25,7 @@ const Signup = () => {
     setEmailExists(false);
     setUsernameExists(false);
     try {
-      const response = await axios.post('http://localhost:5000/signup', formData);
+      const response = await axios.post('https://stock-tracking-app-t495.onrender.com/signup', formData);
       console.log(response.data.message);
       setSignupSuccess(true);
     } catch (error) {

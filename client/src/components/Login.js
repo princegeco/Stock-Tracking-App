@@ -30,7 +30,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/', formData);
+      const response = await axios.post('https://stock-tracking-app-t495.onrender.com', formData);
       console.log(response.data.message);
       setLoginStatus('Login successful');
       // Handle successful login, e.g., store user information in state or session
