@@ -2,8 +2,9 @@ const { ObjectId } = require('mongodb');
 const { getDb } = require('../db/conn');
 
 class User {
-  constructor(name, username, password, email) {
-    this.name = name;
+  constructor(firstName, lastName, username, password, email) {
+    this.firstName = firstName;
+    this.lastName = lastName;
     this.username = username;
     this.password = password;
     this.email = email;

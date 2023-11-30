@@ -1,6 +1,7 @@
 require('dotenv').config({ path: "./config.env" });
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 const { connectToServer } = require('./db/conn');
 const User = require('./models/user');
 
@@ -17,22 +18,36 @@ connectToServer(function (err) {
 
 // Signup route
 app.post('/signup', async (req, res) => {
-  const { email, firstName, lastName, username, password } = req.body;
-  console.log(email, firstName, lastName, username, password);
+  const { firstName, lastName, username, password, email } = req.body;
+
   try {
     // Check if the email already exists
-    const existingUser = await User.findOneByEmail(email);
-    if (existingUser) {
+    const existingEmail = await User.validateEmail(email);
+    if (existingEmail) {
       return res.status(400).json({ message: 'Email already in use' });
     }
 
+    // Check for existing username
+    const existingUsername = await User.findOneByUsername(username);
+    if (existingUsername) {
+      return res.status(400).json({ message: 'Username already in use' });
+    }
+
+    // Hash the password before creating the user
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create a new user
-    const newUser = new User(firstName, lastName, username, email, password);
+    const newUser = new User(firstName, lastName, username, hashedPassword, email);
     await newUser.save();
 
-    res.status(201).json({ message: 'Signup successful' });
+    res.status(201).json({ user: newUser, message: 'Signup successful' });
   } catch (error) {
     console.error('Signup error', error);
+
+    if (error.message === 'Error hashing password') {
+      return res.status(500).json({ message: 'Error during password hashing' });
+    }
+
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -44,12 +59,16 @@ app.post('/', async (req, res) => {
 
   try {
     const user = await User.findOneByUsername(username);
-
-    if (user && user.password === password) {
-      res.json({ message: 'Login successful', user });
-    } else {
-      res.status(401).json({ message: 'Invalid credentials' });
-    }
+    
+    if (user) {
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (validPassword) {
+        res.json({ message: 'Login successful', user });
+        return;
+      }
+    } 
+    
+    res.status(401).json({ message: 'Invalid credentials' });
   } catch (error) {
     console.error('Login error', error);
     res.status(500).json({ message: 'Internal server error' });

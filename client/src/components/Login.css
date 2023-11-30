@@ -3,3 +3,7 @@
 .welcome-text {
     font-family: 'Sarabun', sans-serif;
 }
+
+.start-tracking-btn:hover {
+    border: 1px solid #000; /* Border appears on hover */
+}
